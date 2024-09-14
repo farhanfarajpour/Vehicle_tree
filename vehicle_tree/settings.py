@@ -65,8 +65,7 @@ ROOT_URLCONF = 'vehicle_tree.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,22 +83,22 @@ WSGI_APPLICATION = 'vehicle_tree.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': os.environ.get("POSTGRES_ENGINE"),
-#         'NAME': os.environ.get("POSTGRES_DATABASE"),
-#         'USER': os.environ.get("POSTGRES_USER"),
-#         'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
-#         'HOST': os.environ.get("POSTGRES_HOST"),  # or the hostname of your PostgreSQL server
-#         'PORT': os.environ.get("POSTGRES_PORT"),  # or the port number your PostgreSQL server is using
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': os.environ.get("POSTGRES_ENGINE"),
+        'NAME': os.environ.get("POSTGRES_DATABASE"),
+        'USER': os.environ.get("POSTGRES_USER"),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
+        'HOST': os.environ.get("POSTGRES_HOST"),  # or the hostname of your PostgreSQL server
+        'PORT': os.environ.get("POSTGRES_PORT"),  # or the port number your PostgreSQL server is using
+    }
+}
 
 
 # Password validation
@@ -148,7 +147,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'EXCEPTION_HANDLER': 'vehicle_tree_app.utils.exceptionhandler.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'vehicle_tree_app.middleware.exceptionhandler.custom_exception_handler',
     'DEFAULT_THROTTLE_RATES': {
         'anon': '5/minute',
         'user': '5/minute',
