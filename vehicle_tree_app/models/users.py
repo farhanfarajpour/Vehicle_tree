@@ -37,23 +37,15 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(username=username, password=password, **extra_fields)
 
 
-class Users(ExportModelOperationsMixin("representations"), AbstractUser, BaseModel):
+class Users(ExportModelOperationsMixin("users"), AbstractUser, BaseModel):
 
     username = models.CharField(
         max_length=150, unique=True, null=True, blank=True, verbose_name="username", name="username")
-    work_phone = models.CharField(
-        max_length=20, null=True, blank=True, unique=True, verbose_name="work_phone", name="work_phone")
-    address = models.CharField(
-        max_length=20, null=True, verbose_name="address", name="address")
+    mobile = models.CharField(
+        max_length=20, null=True, blank=True, unique=True, verbose_name="mobile", name="mobile")
+
     is_active = models.BooleanField(
         default=False)
-    city = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="city", name="city")
-    state = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="state", name="state")
-    is_new_user = models.BooleanField(default=False)
-
-    os_status = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
