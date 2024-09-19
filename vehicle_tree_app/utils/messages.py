@@ -4,7 +4,7 @@
 class ErrorMessage:
     errors = {
         0: "This error must be handled by us.",
-        1: "Error",
+        1: "خطا ناشناخته رخ داده است لطفا با ادمین سایت تماس بگیرید",
         2: "no user"
     }
 

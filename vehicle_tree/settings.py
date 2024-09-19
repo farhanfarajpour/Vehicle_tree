@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'vehicle_tree_app.apps.VehicleTreeAppConfig',
+    'vehicle_tree_app',
     'rest_framework',
 
 ]

@@ -23,7 +23,7 @@ class UsersRepo(BaseRepo):
     # SMS Service
     @staticmethod
     def log_sms(phone_number: str, message: str):
-        send_sms_task.delay(phone_number, message)
+        SendSms.send_sms_task.delay(phone_number, message)
 
     # ORM postgresql
     @atomic
