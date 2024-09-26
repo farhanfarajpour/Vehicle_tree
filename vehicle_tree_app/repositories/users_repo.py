@@ -44,7 +44,6 @@ class UsersRepo(BaseRepo):
         if user_filter:
             user = user_filter.first()
             if user.check_password(password):
-                SendSms.send_sms_task.delay(user.work_phone, 'login good')
                 return user
         return None
     @atomic

@@ -46,6 +46,10 @@ class Users(ExportModelOperationsMixin("users"), AbstractUser, BaseModel):
 
     is_active = models.BooleanField(
         default=False)
+    code = models.CharField(
+        max_length=4, null=True, verbose_name="code", name="code")
+    expired_code = models.CharField(
+        max_length=4, null=True, verbose_name="expired_code", name="expired_code")
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []

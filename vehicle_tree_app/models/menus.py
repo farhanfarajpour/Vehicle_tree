@@ -6,15 +6,15 @@ from vehicle_tree_app.models.vehicle import Vehicle
 
 
 class MenusTree(ExportModelOperationsMixin("menus"), BaseModel):
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE,related_name="vehicle")
-    company = models.ForeignKey(Company, on_delete=models.CASCADE,related_name="company")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE,related_name="vehicle",null=True,blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,related_name="company",null=True,blank=True)
     parent_id = models.IntegerField()
     node_name_en = models.CharField(max_length=200, default='')
     node_name_fa = models.CharField(max_length=200)
     img_url = models.CharField(null=True,blank=True, max_length=250)
-    version = models.IntegerField(default=1)
+    # version = models.IntegerField(default=1)
     node_type_name = models.CharField(max_length=254, blank=True,null=True)
-    level = models.IntegerField(null=True, blank=True, default=None)
+    # level = models.IntegerField(null=True, blank=True, default=None)
     # # A = Add, D = Delete, U = Update
     status = models.CharField(max_length=10, blank=True, default='A')
 

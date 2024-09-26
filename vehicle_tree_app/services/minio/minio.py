@@ -37,12 +37,20 @@ class MinIOSDK:
         except S3Error as err:
             return str(err)
 
-    def update_object(self, bucket_name, object_name, file_path):
+    def update_object(self, bucket_name, object_name,image):
         try:
-            client.fput_object(bucket_name, object_name, file_path)
+            client.stat_object(bucket_name,object_name)
+            client.remove_object(bucket_name, object_name)
+            client.put_object(bucket_name, object_name,image, len(image))
             return True
-        except S3Error as err:
-            return str(err)
+        except S3Error as e:
+            if e.code == 'NoSuchKey':
+                client.put_object(bucket_name, object_name, image, len(image))
+                return True
+        except Exception as e:
+            print(e)
+            return False
+
 
     def get_all_objects(self, bucket_name, prefix_name, recursive=False):
         objects = []
@@ -50,9 +58,9 @@ class MinIOSDK:
             objects.append(obj)
         return objects
 
-    def get_object_contents(self, bucket_name, object_name):
+    def get_object(self, bucket_name, object_name):
         try:
-            object_data = client.get_object(bucket_name, object_name).read()
+            object_data = client.get_object(bucket_name, object_name)
             return object_data
         except S3Error as err:
             return str(err)

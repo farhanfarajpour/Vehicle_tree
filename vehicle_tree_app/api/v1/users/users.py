@@ -1,6 +1,8 @@
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.schemas import AutoSchema
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from sentry_sdk import capture_exception
 from vehicle_tree_app.injector.base_injector import BaseInjector
@@ -17,30 +19,6 @@ from vehicle_tree_app.utils.validations import ValidateAndHandleErrors
 
 class BaseView(APIView, AutoSchema):
     user_repo = BaseInjector.get(UsersRepo)
-
-
-class IndexView(BaseView, generics.GenericAPIView):
-    # permission_classes = (permissions.IsAuthenticated,)
-    # serializer_class = UserInfoUpdateSerializer
-
-    def get(self, request):
-        """
-        Update user information
-        """
-        try:
-            self.user_repo.test_elk()
-            sz = self.get_serializer(data=request.data)
-            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
-            if result:
-                return result
-
-            # TODO : ...
-
-            return APIResponse(data=True)
-
-        except Exception as e:
-            capture_exception(e)
-            return APIResponse(error_code=1, status=500)
 
 
 class Login(BaseView, APIView):
@@ -70,3 +48,18 @@ class Login(BaseView, APIView):
         except Exception as e:
             print(e)
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return APIResponse(success_code=2001, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return APIResponse(error_code=3, status=status.HTTP_400_BAD_REQUEST)

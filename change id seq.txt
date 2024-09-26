@@ -1,0 +1,12 @@
+
+
+
+ALTER TABLE vehicle_tree_app_menustree
+ALTER COLUMN id DROP IDENTITY;'vehicle_tree_app_menustree_id_seq');
+
+ALTER TABLE vehicle_tree_app_menustree
+ALTER COLUMN id RESTART WITH 1000000;
+
+
+ALTER TABLE vehicle_tree_app_menustree
+ALTER COLUMN id SET DEFAULT nextval('vehicle_tree_app_menustree_id_seq');
