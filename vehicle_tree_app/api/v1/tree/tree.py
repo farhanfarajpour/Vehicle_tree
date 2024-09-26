@@ -43,32 +43,19 @@ class AllTree(BaseView, generics.GenericAPIView):
             data = {
                 'tree': [],
             }
-            for c in vehicle:
-                data['tree'].append({
-                    'id': c.id,
-                    'parent_id': c.parent_id,
-                    'node_name_en': c.node_name_en,
-                    'node_name_fa': c.node_name_fa,
+            def add(items):
+                for item in items:
+                    data['tree'].append({
+                        'id': item.id,
+                        'parent_id': item.parent_id,
+                        'node_name_en': item.node_name_en,
+                        'node_name_fa': item.node_name_fa,
 
-                })
-            for c in company:
-                data['tree'].append({
-                    'id': c.id,
-                    'parent_id': c.parent_id,
-                    'node_name_en': c.node_name_en,
-                    'node_name_fa': c.node_name_fa,
+                    })
 
-                })
-
-            for t in tree:
-                data['tree'].append({
-                    'id': t.id,
-                    'parent_id': t.parent_id,
-                    'node_name_en': t.node_name_en,
-                    'node_name_fa': t.node_name_fa,
-
-                })
-
+            add(vehicle)
+            add(company)
+            add(tree)
             return Response(data)
 
         except Exception as e:
