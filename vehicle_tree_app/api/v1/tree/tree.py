@@ -56,7 +56,7 @@ class AllTree(BaseView, generics.GenericAPIView):
             add(vehicle)
             add(company)
             add(tree)
-            return Response(data)
+            return APIResponse(data,success_code=2006,status=status.HTTP_200_OK)
 
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
