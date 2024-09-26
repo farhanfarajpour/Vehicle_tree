@@ -23,7 +23,7 @@ class UsersRepo(BaseRepo):
     # SMS Service
     @staticmethod
     def log_sms(phone_number: str, message: str):
-        send_sms_task.delay(phone_number, message)
+        SendSms.send_sms_task.delay(phone_number, message)
 
     # ORM postgresql
     @atomic
@@ -44,7 +44,6 @@ class UsersRepo(BaseRepo):
         if user_filter:
             user = user_filter.first()
             if user.check_password(password):
-                SendSms.send_sms_task.delay(user.work_phone, 'login good')
                 return user
         return None
     @atomic

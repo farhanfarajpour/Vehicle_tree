@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from datetime import timedelta
 
-
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -45,14 +44,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'vehicle_tree_app.apps.VehicleTreeAppConfig',
+    'vehicle_tree_app',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -92,14 +93,13 @@ WSGI_APPLICATION = 'vehicle_tree.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get("POSTGRES_ENGINE"),
-        'NAME': os.environ.get("POSTGRES_DATABASE"),
+        'NAME': os.environ.get("POSTGRES_DB"),
         'USER': os.environ.get("POSTGRES_USER"),
         'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
         'HOST': os.environ.get("POSTGRES_HOST"),  # or the hostname of your PostgreSQL server
         'PORT': os.environ.get("POSTGRES_PORT"),  # or the port number your PostgreSQL server is using
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -181,10 +181,9 @@ MINIO_SECURE = os.getenv('MINIO_SECURE')
 
 client = Minio(MINIO_ENDPOINT, access_key=MINIO_ACCESS_KEY, secret_key=MINIO_SECRET_KEY, secure=False)
 
-
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
-
+CORS_ALLOW_ALL_ORIGINS = True
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
