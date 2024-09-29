@@ -59,8 +59,8 @@ class LoginByNumberForGetCodeView(BaseView, generics.GenericAPIView):
             user = self.user_repo.login_user_by_phone(sz.data['mobile'])
             if user:
                 return APIResponse(success_code=2007)
-            else:
-                return APIResponse(error_code=4, status=status.HTTP_400_BAD_REQUEST)
+
+            return APIResponse(error_code=4, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
 
