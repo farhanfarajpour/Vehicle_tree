@@ -14,18 +14,6 @@ from django.db.transaction import atomic
 
 class UsersRepo(BaseRepo):
 
-    # TODO : Change all methods here to something you can use
-    # Elastic Search
-    def elk_search(self):
-        query = {}
-        aggs = {}
-        data = self.elk.new_search(query=query, aggs=aggs, size=0)
-        return data
-
-    # MinIO
-    def minio_find(self):
-        return self.service_minio.find_object("", "")
-
     # SMS Service
     @staticmethod
     def log_sms(phone_number: str, message: str):

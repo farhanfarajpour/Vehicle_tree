@@ -1,5 +1,5 @@
 from vehicle_tree_app.repositories.base_repo import BaseRepo
-from vehicle_tree_app.schemas.users import RegisterUserSchema
+from vehicle_tree_app.schemas.users import UpdateUserSchema
 from vehicle_tree_app.services.sms.tasks import SendSms
 from vehicle_tree_app.models.vehicle import Vehicle
 from typing import List, Optional
