@@ -71,15 +71,14 @@ class UsersRepo(BaseRepo):
             # Save the updated user instance
             user.save()
             return user
-
+        return None
     @atomic
     def delete_user(self, user_id: int) -> bool:
         user = self.get_user_by_id(user_id)
         if user:
             user.delete()
             return True
-        else:
-            return False
+        return False
 
     @atomic
     def get_total_user(self):
