@@ -6,8 +6,6 @@ from datetime import datetime, date
 class UserModel(BaseModel):
     id: int
     username: str
-    city: str
-    state: str
     agency_id: int
     agency_name: str
 
@@ -18,11 +16,11 @@ class EventModel(BaseModel):
     properties: str | None
 
 
-class RegisterUserSchema(BaseModel):
+class UpdateUserSchema(BaseModel):
+    id: int
     first_name: str
     last_name: str
-    state: str
-    city: str
+    mobile: str
 
 
 class LogIndexModel(BaseModel):
@@ -33,4 +31,3 @@ class LogIndexModel(BaseModel):
     node_route: str
     events_list: List[EventModel]
     created_at: datetime
-
