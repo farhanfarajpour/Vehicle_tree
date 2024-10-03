@@ -29,8 +29,7 @@ class UsersRepo(BaseRepo):
         user = Users.objects.filter(mobile=phone).first()
         if user:
             verification_code = get_random_string(length=4, allowed_chars='0123456789')
-            message = f'کد تأیید شما: {verification_code}'
-            SendSms.send_sms_task.delay(phone, message)
+            SendSms.send_sms_task.delay(phone, verification_code)
             user.code = verification_code
             user.save()
             return user
@@ -72,6 +71,7 @@ class UsersRepo(BaseRepo):
             user.save()
             return user
         return None
+
     @atomic
     def delete_user(self, user_id: int) -> bool:
         user = self.get_user_by_id(user_id)

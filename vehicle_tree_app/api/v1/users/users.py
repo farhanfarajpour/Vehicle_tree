@@ -31,8 +31,9 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
 
         try:
             sz = self.get_serializer(data=request.data)
-            if ValidateAndHandleErrors.validate_and_handle_errors(sz):
-                return ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
             user = self.user_repo.login_user_by_username(sz.data['username'], sz.data['password'])
             if user:
                 token = AccessToken.for_user(user)
@@ -54,8 +55,9 @@ class LoginByNumberForGetCodeView(BaseView, generics.GenericAPIView):
     def post(self, request):
         try:
             sz = self.get_serializer(data=request.data)
-            if ValidateAndHandleErrors.validate_and_handle_errors(sz):
-                return ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
             user = self.user_repo.login_user_by_phone(sz.data['mobile'])
             if user:
                 return APIResponse(success_code=2007)
@@ -71,8 +73,9 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
     def post(self, request):
         try:
             sz = self.get_serializer(data=request.data)
-            if ValidateAndHandleErrors.validate_and_handle_errors(sz):
-                return ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
             user = self.user_repo.login_verify_user_code(sz.data['phone_number'], sz.data['code'])
             if user:
                 token = AccessToken.for_user(user)
@@ -93,8 +96,9 @@ class LogoutView(BaseView, generics.GenericAPIView):
     def post(self, request):
         try:
             refresh_token = request.data.get("refreshToken")
-            if ValidateAndHandleErrors.validate_and_handle_errors(refresh_token):
-                return ValidateAndHandleErrors.validate_and_handle_errors(refresh_token)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(refresh_token)
+            if result:
+                return result
             if not refresh_token:
                 return APIResponse(error_code=8, status=status.HTTP_400_BAD_REQUEST)
             try:
@@ -113,8 +117,9 @@ class UserUpdateView(BaseView, generics.GenericAPIView):
     def put(self, request):
         try:
             sz = self.get_serializer(data=request.data)
-            if ValidateAndHandleErrors.validate_and_handle_errors(sz):
-                return ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
             if self.user_repo.update_user(user_id=request.data["id"], data=sz.validated_data):
                 return APIResponse(success_code=2003, status=status.HTTP_200_OK)
             return APIResponse(error_code=7, status=status.HTTP_400_BAD_REQUEST)
@@ -131,8 +136,9 @@ class UserDeleteView(BaseView, generics.GenericAPIView):
             result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
             if result:
                 return result
-            self.user_repo.delete_user(user_id=request.data["id"])
-            return APIResponse(success_code=2004, status=status.HTTP_200_OK)
+            if self.user_repo.delete_user(user_id=request.data["id"]):
+                return APIResponse(success_code=2004, status=status.HTTP_200_OK)
+            return APIResponse(error_code=4, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
 
@@ -143,10 +149,13 @@ class UserListView(BaseView, generics.GenericAPIView):
     def post(self, request):
         try:
             sz = self.get_serializer(data=request.data)
-            if ValidateAndHandleErrors.validate_and_handle_errors(sz):
-                return ValidateAndHandleErrors.validate_and_handle_errors(sz)
-            self.user_repo.get_users()
-            serialized_users = UserLoginSerializer(users, many=True)
-            return APIResponse(serialized_users.data, status=status.HTTP_200_OK)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
+            user = self.user_repo.get_users()
+            if user:
+                serialized_users = UserLoginSerializer(user, many=True)
+                return APIResponse(serialized_users.data, status=status.HTTP_200_OK)
+            return APIResponse(error_code=8, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
