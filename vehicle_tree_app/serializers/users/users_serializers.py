@@ -101,3 +101,38 @@ class UserDeleteSerializer(serializers.Serializer):
             'invalid': 'Invalid id.',
         }
     )
+class CreateUserSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Username cannot be null.',
+            'invalid': 'Invalid username.'
+        }
+    )
+    password = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Password cannot be null.',
+            'invalid': 'Invalid password.',
+        }
+    )
+
+class ChangePasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Password cannot be null.',
+            'invalid': 'Invalid password.',
+        }
+    )
+    confirm_password = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Confirm password cannot be null.',
+            'invalid': 'Invalid password.',
+        }
+    )

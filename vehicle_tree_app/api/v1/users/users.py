@@ -11,7 +11,8 @@ from vehicle_tree_app.injector.base_injector import BaseInjector
 from vehicle_tree_app.models import users
 from vehicle_tree_app.repositories.users_repo import UsersRepo
 from vehicle_tree_app.serializers.users.users_serializers import (
-    UserUpdateSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer, UserDeleteSerializer
+    UserUpdateSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
+    UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer
 )
 from vehicle_tree_app.models.users import Users
 from rest_framework import permissions
@@ -93,26 +94,48 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
 class LogoutView(BaseView, generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
+    #
+    # def post(self, request):
+    #     try:
+    #         refresh_token = request.data.get("refreshToken")
+    #         result = ValidateAndHandleErrors.validate_and_handle_errors(refresh_token)
+    #         if result:
+    #             return result
+    #         if not refresh_token:
+    #             return APIResponse(error_code=8, status=status.HTTP_400_BAD_REQUEST)
+    #         try:
+    #             token = RefreshToken(refresh_token)
+    #             token.blacklist()
+    #         except Exception as e:
+    #             return APIResponse(error_code=7, status=status.HTTP_400_BAD_REQUEST)
+    #         return APIResponse(2001, status=status.HTTP_205_RESET_CONTENT)
+    #     except Exception as e:
+    #         return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #
+
     def post(self, request):
         try:
             refresh_token = request.data.get("refreshToken")
-            result = ValidateAndHandleErrors.validate_and_handle_errors(refresh_token)
-            if result:
-                return result
+
             if not refresh_token:
                 return APIResponse(error_code=8, status=status.HTTP_400_BAD_REQUEST)
+
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception as e:
                 return APIResponse(error_code=7, status=status.HTTP_400_BAD_REQUEST)
-            return APIResponse(2001, status=status.HTTP_205_RESET_CONTENT)
+
+            return APIResponse(success_code=2001, status=status.HTTP_205_RESET_CONTENT)
+
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserUpdateView(BaseView, generics.GenericAPIView):
     serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
     def put(self, request):
         try:
@@ -129,6 +152,7 @@ class UserUpdateView(BaseView, generics.GenericAPIView):
 
 class UserDeleteView(BaseView, generics.GenericAPIView):
     serializer_class = UserDeleteSerializer
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request):
         try:
@@ -157,5 +181,37 @@ class UserListView(BaseView, generics.GenericAPIView):
                 serialized_users = UserLoginSerializer(user, many=True)
                 return APIResponse(serialized_users.data, status=status.HTTP_200_OK)
             return APIResponse(error_code=8, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateUserView(BaseView, generics.GenericAPIView):
+    serializer_class = CreateUserSerializer
+
+    def post(self, request):
+        try:
+            sz = self.get_serializer(data=request.data)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
+            self.user_repo.create_user(request.data["username"], request.data["password"])
+            return APIResponse(success_code=200, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordView(BaseView, generics.GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            sz = self.get_serializer(data=request.data)
+            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
+            if result:
+                return result
+            self.user_repo.change_password(user=request.data, password=request.data["password"],
+                                           confirm_password=request.data["confirm_password"])
+            return APIResponse(success_code=200, status=status.HTTP_201_CREATED)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)

@@ -2,7 +2,7 @@ import random
 import string
 
 from django.utils.crypto import get_random_string
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, Token
 
 from vehicle_tree_app.repositories.base_repo import BaseRepo
 from vehicle_tree_app.schemas.users import UpdateUserSchema
@@ -13,11 +13,6 @@ from django.db.transaction import atomic
 
 
 class UsersRepo(BaseRepo):
-
-    # SMS Service
-    @staticmethod
-    def log_sms(phone_number: str, message: str):
-        SendSms.send_sms_task.delay(phone_number, message)
 
     # ORM postgresql
     @atomic
@@ -56,10 +51,6 @@ class UsersRepo(BaseRepo):
         return Users.objects.get(id=user_id)
 
     @atomic
-    def check_new_user(self, phone_number: str) -> bool:
-        return Users.objects.filter(phone=phone_number, is_new_user=False).exists()
-
-    @atomic
     def update_user(self, user_id: int, data: UpdateUserSchema) -> Optional[Users]:
         # Retrieve the user by ID
         user = self.get_user_by_id(user_id)
@@ -81,5 +72,17 @@ class UsersRepo(BaseRepo):
         return False
 
     @atomic
-    def get_total_user(self):
-        return Users.objects.count()
+    def create_user(self, validated_data)-> Optional[Users]:
+        username = validated_data['username']
+        if Users.objects.filter(username=username).exists():
+            user = Users(username=username, password=validated_data['password'])
+            user.save()
+            return user
+        return None
+
+    @atomic
+    def change_password(self, user: Users, password: str, confirm_password: str):
+        if password != confirm_password:
+            user.set_password(password)
+            user.save()
+            return user
