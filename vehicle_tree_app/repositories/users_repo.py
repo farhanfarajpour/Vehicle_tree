@@ -2,10 +2,11 @@ import random
 import string
 
 from django.utils.crypto import get_random_string
+from prompt_toolkit.shortcuts import confirm
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, Token
 
 from vehicle_tree_app.repositories.base_repo import BaseRepo
-from vehicle_tree_app.schemas.users import UpdateUserSchema
+from vehicle_tree_app.schemas.users import UpdateUserSchema, CreateUserSchema, ChangePasswordSchema
 from vehicle_tree_app.services.sms.tasks import SendSms
 from vehicle_tree_app.models.users import Users
 from typing import List, Optional
@@ -72,17 +73,15 @@ class UsersRepo(BaseRepo):
         return False
 
     @atomic
-    def create_user(self, validated_data)-> Optional[Users]:
-        username = validated_data['username']
-        if Users.objects.filter(username=username).exists():
-            user = Users(username=username, password=validated_data['password'])
-            user.save()
-            return user
-        return None
-
+    def create_user(self,data: CreateUserSchema):
+            username=data['username']
+            if not Users.objects.filter(username=username).exists():
+                new_user = Users(username=data["username"], password=data["password"])
+                new_user.save()
+                return new_user
     @atomic
-    def change_password(self, user: Users, password: str, confirm_password: str):
-        if password != confirm_password:
-            user.set_password(password)
-            user.save()
-            return user
+    def change_password(self, data: ChangePasswordSchema)-> Optional[Users]:
+           if data['password'] != data['confirm_password']:
+                user=data.save()
+                return user
+           return None

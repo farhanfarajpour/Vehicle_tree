@@ -122,6 +122,7 @@ class CreateUserSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     password = serializers.CharField(
         allow_null=False,
+        max_length=10,
         required=True,
         error_messages={
             'null': 'Password cannot be null.',
@@ -130,6 +131,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     )
     confirm_password = serializers.CharField(
         allow_null=False,
+        max_length=10,
         required=True,
         error_messages={
             'null': 'Confirm password cannot be null.',

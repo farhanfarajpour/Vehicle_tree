@@ -1,3 +1,4 @@
+from dns.dnssec import validate
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +11,7 @@ import vehicle_tree_app
 from vehicle_tree_app.injector.base_injector import BaseInjector
 from vehicle_tree_app.models import users
 from vehicle_tree_app.repositories.users_repo import UsersRepo
+from vehicle_tree_app.schemas.users import CreateUserSchema
 from vehicle_tree_app.serializers.users.users_serializers import (
     UserUpdateSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
     UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer
@@ -194,10 +196,10 @@ class CreateUserView(BaseView, generics.GenericAPIView):
             result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
             if result:
                 return result
-            self.user_repo.create_user(request.data["username"], request.data["password"])
-            return APIResponse(success_code=200, status=status.HTTP_201_CREATED)
+            self.user_repo.create_user(data=sz.validated_data)
+            return APIResponse(success_code=2008, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+            return APIResponse(error_code=9, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(BaseView, generics.GenericAPIView):
@@ -210,8 +212,7 @@ class ChangePasswordView(BaseView, generics.GenericAPIView):
             result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
             if result:
                 return result
-            self.user_repo.change_password(user=request.data, password=request.data["password"],
-                                           confirm_password=request.data["confirm_password"])
-            return APIResponse(success_code=200, status=status.HTTP_201_CREATED)
+            self.user_repo.change_password(data=sz.validated_data)
+            return APIResponse(success_code=2009, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+            return APIResponse(error_code=10, status=status.HTTP_400_BAD_REQUEST)
