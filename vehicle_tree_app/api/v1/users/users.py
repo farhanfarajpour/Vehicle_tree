@@ -8,7 +8,6 @@ from rest_framework.schemas import AutoSchema
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from sentry_sdk import capture_exception
-from django.contrib.auth.hashers import make_password
 import vehicle_tree_app
 from vehicle_tree_app.injector.base_injector import BaseInjector
 from vehicle_tree_app.models import users
@@ -196,7 +195,7 @@ class ChangePasswordView(BaseView, generics.GenericAPIView):
             result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
             if result:
                 return result
-            self.user_repo.change_password(data={'password':make_password(sz.validated_data["password"]),'confirm_password':make_password(sz.validated_data["confirm_password"])},)
+            self.user_repo.change_password(data=sz.validated_data)
             return APIResponse(success_code=2009, status=status.HTTP_201_CREATED)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)

@@ -24,7 +24,7 @@ class ValidateAndHandleErrors(APIView):
                             if error_detail.code == 'unique':
                                 return APIResponse(data="", error_code=1007, status=404)
                             if error_detail.code == 'password_mismatch':
-                                return APIResponse(data="", error_code=1008, status=404)
+                                return APIResponse(data="", error_code=10, status=404)
                             if error_detail.code == 'invalid_choice':
                                 return APIResponse(data="", error_code=1009, status=404)
                             if error_detail.code == 'min_length':

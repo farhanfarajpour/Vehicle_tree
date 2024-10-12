@@ -86,7 +86,7 @@ class UsersRepo(BaseRepo):
 
     @atomic
     def change_password(self, data: ChangePasswordSchema):
-       password = data['password']
+       password = make_password(data['password'])
        user = Users(password=password)
        user.save()
        return user
