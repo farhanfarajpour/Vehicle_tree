@@ -1,10 +1,14 @@
 import random
 import string
-
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
+from dns.tsig import validate
 from prompt_toolkit.shortcuts import confirm
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, Token
-
+from vehicle_tree_app.serializers.users.users_serializers import ChangePasswordSerializer
 from vehicle_tree_app.repositories.base_repo import BaseRepo
 from vehicle_tree_app.schemas.users import UpdateUserSchema, CreateUserSchema, ChangePasswordSchema
 from vehicle_tree_app.services.sms.tasks import SendSms
@@ -73,15 +77,16 @@ class UsersRepo(BaseRepo):
         return False
 
     @atomic
-    def create_user(self,data: CreateUserSchema):
-            username=data['username']
-            if not Users.objects.filter(username=username).exists():
-                new_user = Users(username=data["username"], password=data["password"])
-                new_user.save()
-                return new_user
+    def create_user(self, data: CreateUserSchema):
+        username = data['username']
+        if not Users.objects.filter(username=username).exists():
+            new_user = Users(username=data["username"], password=data["password"])
+            new_user.save()
+            return new_user
+
     @atomic
-    def change_password(self, data: ChangePasswordSchema)-> Optional[Users]:
-           if data['password'] != data['confirm_password']:
-                user=data.save()
-                return user
-           return None
+    def change_password(self, data: ChangePasswordSchema):
+       password = data['password']
+       user = Users(password=password)
+       user.save()
+       return user

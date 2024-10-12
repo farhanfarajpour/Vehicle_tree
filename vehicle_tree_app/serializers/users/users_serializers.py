@@ -1,4 +1,7 @@
-from rest_framework import serializers
+from celery.bin.logtool import errors
+from rest_framework import serializers, status
+
+from vehicle_tree_app.middleware.response import APIResponse
 from vehicle_tree_app.models.users import Users
 
 
@@ -46,6 +49,7 @@ class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField(
         allow_null=False,
         required=True,
+        max_length=10,
         error_messages={
             'null': 'Username cannot be null.',
             'invalid': 'Invalid username.'
@@ -55,6 +59,7 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(
         allow_null=False,
         required=True,
+        max_length=10,
         error_messages={
             'null': 'Password cannot be null.',
             'invalid': 'Invalid password.',
@@ -65,6 +70,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserNumberLoginSerializer(serializers.Serializer):
     mobile = serializers.CharField(
         allow_null=False,
+        max_length=11,
         required=True,
         error_messages={
             'null': 'work_number cannot be null.',
@@ -84,10 +90,22 @@ class UserNumberCodeSerializer(serializers.Serializer):
     )
     mobile = serializers.CharField(
         allow_null=False,
+        max_length=11,
         required=True,
         error_messages={
             'null': 'work_number cannot be null.',
             'invalid': 'Invalid mobile number.',
+        }
+    )
+
+
+class UserLogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Refresh token cannot be null.',
+            'invalid': 'Invalid refresh token.',
         }
     )
 
@@ -101,10 +119,13 @@ class UserDeleteSerializer(serializers.Serializer):
             'invalid': 'Invalid id.',
         }
     )
+
+
 class CreateUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         allow_null=False,
         required=True,
+        max_length=10,
         error_messages={
             'null': 'Username cannot be null.',
             'invalid': 'Invalid username.'
@@ -112,12 +133,14 @@ class CreateUserSerializer(serializers.Serializer):
     )
     password = serializers.CharField(
         allow_null=False,
+        max_length=10,
         required=True,
         error_messages={
             'null': 'Password cannot be null.',
             'invalid': 'Invalid password.',
         }
     )
+
 
 class ChangePasswordSerializer(serializers.Serializer):
     password = serializers.CharField(
@@ -138,3 +161,10 @@ class ChangePasswordSerializer(serializers.Serializer):
             'invalid': 'Invalid password.',
         }
     )
+
+    def validate(self, data):
+        password=data.get('password')
+        confirm_password=data.get('confirm_password')
+        if password != confirm_password:
+            raise serializers.ValidationError(detail="password_mismatch", code="password_mismatch")
+        return data
