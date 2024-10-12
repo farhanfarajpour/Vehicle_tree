@@ -1,11 +1,16 @@
 import random
 import string
-
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-
+from dns.tsig import validate
+from prompt_toolkit.shortcuts import confirm
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, Token
+from vehicle_tree_app.serializers.users.users_serializers import ChangePasswordSerializer
 from vehicle_tree_app.repositories.base_repo import BaseRepo
-from vehicle_tree_app.schemas.users import UpdateUserSchema
+from vehicle_tree_app.schemas.users import UpdateUserSchema, CreateUserSchema, ChangePasswordSchema
 from vehicle_tree_app.services.sms.tasks import SendSms
 from vehicle_tree_app.models.users import Users
 from typing import List, Optional
@@ -13,11 +18,6 @@ from django.db.transaction import atomic
 
 
 class UsersRepo(BaseRepo):
-
-    # SMS Service
-    @staticmethod
-    def log_sms(phone_number: str, message: str):
-        SendSms.send_sms_task.delay(phone_number, message)
 
     # ORM postgresql
     @atomic
@@ -56,10 +56,6 @@ class UsersRepo(BaseRepo):
         return Users.objects.get(id=user_id)
 
     @atomic
-    def check_new_user(self, phone_number: str) -> bool:
-        return Users.objects.filter(phone=phone_number, is_new_user=False).exists()
-
-    @atomic
     def update_user(self, user_id: int, data: UpdateUserSchema) -> Optional[Users]:
         # Retrieve the user by ID
         user = self.get_user_by_id(user_id)
@@ -81,5 +77,16 @@ class UsersRepo(BaseRepo):
         return False
 
     @atomic
-    def get_total_user(self):
-        return Users.objects.count()
+    def create_user(self, data: CreateUserSchema):
+        username = data['username']
+        if not Users.objects.filter(username=username).exists():
+            new_user = Users(username=data["username"], password=data["password"])
+            new_user.save()
+            return new_user
+
+    @atomic
+    def change_password(self, data: ChangePasswordSchema):
+       password = make_password(data['password'])
+       user = Users(password=password)
+       user.save()
+       return user

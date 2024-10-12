@@ -22,6 +22,13 @@ class UpdateUserSchema(BaseModel):
     last_name: str
     mobile: str
 
+class CreateUserSchema(BaseModel):
+    username: str
+    password: str
+
+class ChangePasswordSchema(BaseModel):
+    password: str
+    confirm_password: str
 
 class LogIndexModel(BaseModel):
     user: UserModel
