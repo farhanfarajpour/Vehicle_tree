@@ -17,7 +17,7 @@ from vehicle_tree_app.serializers.users.users_serializers import (
     UserUpdateAndUserListSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
     UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer
 )
-from vehicle_tree_app.permissions.permissions import IsAuthenticated,IsSuperUserOrAdmin,IsUser
+from vehicle_tree_app.permissions.permissions import IsAuthenticated,IsSuperUser
 from vehicle_tree_app.models.users import Users
 from rest_framework import permissions
 from vehicle_tree_app.middleware.response import APIResponse
@@ -98,7 +98,7 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
 
 class LogoutView(BaseView, generics.GenericAPIView):
     serializer_class = UserLogoutSerializer
-    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin,IsUser]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
@@ -120,7 +120,7 @@ class LogoutView(BaseView, generics.GenericAPIView):
 
 class UserUpdateView(BaseView, generics.GenericAPIView):
     serializer_class = UserUpdateAndUserListSerializer
-    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin,IsUser]
+    permission_classes = [IsSuperUser]
 
     def put(self, request):
         try:
@@ -137,7 +137,7 @@ class UserUpdateView(BaseView, generics.GenericAPIView):
 
 class UserDeleteView(BaseView, generics.GenericAPIView):
     serializer_class = UserDeleteSerializer
-    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin]
+    permission_classes = [IsSuperUser]
 
     def delete(self, request):
         try:
@@ -154,7 +154,7 @@ class UserDeleteView(BaseView, generics.GenericAPIView):
 
 class UserListView(BaseView, generics.GenericAPIView):
     serializer_class = UserUpdateAndUserListSerializer
-    permission_classes =[IsAuthenticated,IsSuperUserOrAdmin]
+    permission_classes =[IsSuperUser]
     def get(self, request):
         try:
             user = self.user_repo.get_users()
@@ -168,7 +168,7 @@ class UserListView(BaseView, generics.GenericAPIView):
 
 class CreateUserView(BaseView, generics.GenericAPIView):
     serializer_class = CreateUserSerializer
-    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin]
+    permission_classes = [IsSuperUser]
     def post(self, request):
         try:
             sz = self.get_serializer(data=request.data)
@@ -185,7 +185,7 @@ class CreateUserView(BaseView, generics.GenericAPIView):
 
 class ChangePasswordView(BaseView, generics.GenericAPIView):
     serializer_class = ChangePasswordSerializer
-    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin,IsUser]
+    permission_classes = [IsSuperUser]
 
     def post(self, request):
         try:
