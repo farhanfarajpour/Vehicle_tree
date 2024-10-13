@@ -1,5 +1,6 @@
 from django.urls import path
 
+from vehicle_tree_app.api.v1.admin.header import HeaderView
 from vehicle_tree_app.api.v1.tree.tree import AllTree, AddTree, UpdateTree, DeleteTree, Img
 
 admin_url = [
@@ -10,5 +11,6 @@ admin_url = [
     path('admin/delete/menutree', DeleteTree.as_view(), name='delete_item_tree'),
     path('admin/download/<int:id>', Img.as_view(), name='SearchAndDownload'),
     path('admin/addimg/<int:id>', Img.as_view(), name='get_img'),
+    path('admin/getheaders/<int:id>', HeaderView.as_view(), name='get-headers'),
 
 ]

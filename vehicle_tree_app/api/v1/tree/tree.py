@@ -43,6 +43,7 @@ class AllTree(BaseView, generics.GenericAPIView):
             data = {
                 'tree': [],
             }
+
             def add(items):
                 for item in items:
                     data['tree'].append({
@@ -56,7 +57,7 @@ class AllTree(BaseView, generics.GenericAPIView):
             add(vehicle)
             add(company)
             add(tree)
-            return APIResponse(data,success_code=2006,status=status.HTTP_200_OK)
+            return APIResponse(data, success_code=2006, status=status.HTTP_200_OK)
 
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
@@ -112,8 +113,7 @@ class DeleteTree(BaseView, generics.GenericAPIView):
                 return result
             if self.MenusTree_repo.delete_tree(id=serializer.validated_data.get("id")):
                 return APIResponse(success_code=2004, status=status.HTTP_201_CREATED)
-            else:
-                return APIResponse(error_code=4, status=status.HTTP_400_BAD_REQUEST)
+            return APIResponse(error_code=4, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
@@ -143,3 +143,5 @@ class Img(BaseView, generics.GenericAPIView):
             return APIResponse(error_code=6, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+
+
