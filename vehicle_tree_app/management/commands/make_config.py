@@ -16,9 +16,9 @@ class Command(BaseCommand):
     help = 'make table config'
 
     def handle(self, *args, **kwargs):
-        # path = input("enter the path file to nodetypes:")
+        path = input("enter the path file to config:")
         # fp = open(os.path.join(BASE_DIR, "JSONS", f"{file_name}.json"), "w")
-        excel_file = pd.ExcelFile("C:/Users/s.ghanbarzadeh/Desktop/isaco/CONFIG_MAP.xlsx")
+        excel_file = pd.ExcelFile(path)
         sheet_names = list(excel_file.sheet_names)
         data = []
 

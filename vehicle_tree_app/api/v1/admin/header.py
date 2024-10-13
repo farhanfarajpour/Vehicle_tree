@@ -16,6 +16,7 @@ from sentry_sdk import capture_exception
 from vehicle_tree_app.middleware.response import APIResponse
 from vehicle_tree_app.repositories.vehicle_repo import VehicleRepo
 from vehicle_tree_app.schemas.tree import MenuTreeModelSchema, UpdateMenuTreeModelSchema
+from vehicle_tree_app.serializers.admin.headers_serializers import HeaderSerializer
 from vehicle_tree_app.serializers.admin.tree_serializers import AddMenusTreeSerializer, UpdateMenusTreeSerializer, \
     DeleteMenusTreeSerializer
 from vehicle_tree_app.utils.validations import ValidateAndHandleErrors
@@ -36,18 +37,7 @@ class HeaderView(BaseView, generics.GenericAPIView):
         try:
             headers = self.Header_repo.filter_by_menutree_id(id)
             if headers:
-                data = {
-                    'headers': [],
-                }
-                for header in headers:
-                    data['headers'].append({
-                        'id': header.id,
-                        'parent_id': header.parent_id,
-                        'node_name_en': header.node_name_en,
-                        'node_name_fa': header.node_name_fa,
-                        'old_id': header.old_id
-                    })
-                return Response(data, status=status.HTTP_200_OK)
+                se = HeaderSerializer(headers, many=True)
+                return Response(se.data, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)

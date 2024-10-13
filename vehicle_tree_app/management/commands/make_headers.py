@@ -7,8 +7,8 @@ class Command(BaseCommand):
     help = 'make headers table by enum_id'
 
     def handle(self, *args, **kwargs):
-        # path = input("enter the path file to nodetypes:")
-        with open('C:/Users/s.ghanbarzadeh/Desktop/isaco/diag_nodetype.h') as f:
+        path = input("enter the path file to diag_nodetype:")
+        with open(path) as f:
             content = f.read()
         enums_list = []
         for enum in content.split(','):
