@@ -16,12 +16,14 @@ class MenusTreeRepo(BaseRepo):
     def get_all_tree(self) -> MenusTree:
         return MenusTree.objects.all()
 
+    @atomic
     def get_item_by_id(self, id: int) -> Optional[MenusTree]:
         menu = MenusTree.objects.filter(id=id).first()
         if menu:
             return menu
         return False
 
+    @atomic
     def create_item(self, data: MenuTreeModelSchema) -> Optional[MenusTree]:
         parent_item = self.get_item_by_id(data.parent_id)
         if parent_item:
@@ -29,6 +31,7 @@ class MenusTreeRepo(BaseRepo):
                                                 node_name_fa=data.node_name_fa)
             return new_menu
 
+    @atomic
     def update_tree(self, data: UpdateMenuTreeModelSchema) -> Optional[MenusTree]:
         item = self.get_item_by_id(data.id)
         update_data = data.dict(exclude_unset=True)
@@ -37,6 +40,7 @@ class MenusTreeRepo(BaseRepo):
         item.save()
         return item
 
+    @atomic
     def delete_tree(self, id: int):
         item = self.get_item_by_id(id)
         if item:
