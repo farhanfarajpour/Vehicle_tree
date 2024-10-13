@@ -1,4 +1,4 @@
-from argon2 import hash_password
+
 from django.contrib.auth.password_validation import validate_password
 from dns.dnssec import validate
 from rest_framework.response import Response
@@ -14,9 +14,10 @@ from vehicle_tree_app.models import users
 from vehicle_tree_app.repositories.users_repo import UsersRepo
 from vehicle_tree_app.schemas.users import CreateUserSchema
 from vehicle_tree_app.serializers.users.users_serializers import (
-    UserUpdateSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
+    UserUpdateAndUserListSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
     UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer
 )
+from vehicle_tree_app.permissions.permissions import IsAuthenticated,IsSuperUserOrAdmin,IsUser
 from vehicle_tree_app.models.users import Users
 from rest_framework import permissions
 from vehicle_tree_app.middleware.response import APIResponse
@@ -51,6 +52,7 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
             return APIResponse(error_code=2, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIResponse(error_code=1, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class LoginByNumberForGetCodeView(BaseView, generics.GenericAPIView):
@@ -96,7 +98,7 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
 
 class LogoutView(BaseView, generics.GenericAPIView):
     serializer_class = UserLogoutSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin,IsUser]
 
     def post(self, request):
         try:
@@ -117,8 +119,8 @@ class LogoutView(BaseView, generics.GenericAPIView):
 
 
 class UserUpdateView(BaseView, generics.GenericAPIView):
-    serializer_class = UserUpdateSerializer
-    permission_classes = [IsAuthenticated]
+    serializer_class = UserUpdateAndUserListSerializer
+    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin,IsUser]
 
     def put(self, request):
         try:
@@ -135,7 +137,7 @@ class UserUpdateView(BaseView, generics.GenericAPIView):
 
 class UserDeleteView(BaseView, generics.GenericAPIView):
     serializer_class = UserDeleteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin]
 
     def delete(self, request):
         try:
@@ -151,14 +153,10 @@ class UserDeleteView(BaseView, generics.GenericAPIView):
 
 
 class UserListView(BaseView, generics.GenericAPIView):
-    serializer_class = UserLoginSerializer
-
-    def post(self, request):
+    serializer_class = UserUpdateAndUserListSerializer
+    permission_classes =[IsAuthenticated,IsSuperUserOrAdmin]
+    def get(self, request):
         try:
-            sz = self.get_serializer(data=request.data)
-            result = ValidateAndHandleErrors.validate_and_handle_errors(sz)
-            if result:
-                return result
             user = self.user_repo.get_users()
             if user:
                 serialized_users = UserLoginSerializer(user, many=True)
@@ -170,7 +168,7 @@ class UserListView(BaseView, generics.GenericAPIView):
 
 class CreateUserView(BaseView, generics.GenericAPIView):
     serializer_class = CreateUserSerializer
-
+    permission_classes = [IsAuthenticated,IsSuperUserOrAdmin]
     def post(self, request):
         try:
             sz = self.get_serializer(data=request.data)
@@ -187,7 +185,7 @@ class CreateUserView(BaseView, generics.GenericAPIView):
 
 class ChangePasswordView(BaseView, generics.GenericAPIView):
     serializer_class = ChangePasswordSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin,IsUser]
 
     def post(self, request):
         try:
