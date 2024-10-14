@@ -5,7 +5,8 @@ from vehicle_tree_app.middleware.response import APIResponse
 from vehicle_tree_app.models.users import Users
 
 
-class UserUpdateSerializer(serializers.Serializer):
+
+class UserUpdateAndUserListSerializer(serializers.Serializer):
     id = serializers.IntegerField(
         allow_null=False,
         required=True,
@@ -163,8 +164,10 @@ class ChangePasswordSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        password=data.get('password')
-        confirm_password=data.get('confirm_password')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
         if password != confirm_password:
             raise serializers.ValidationError(detail="password_mismatch", code="password_mismatch")
         return data
+
+
