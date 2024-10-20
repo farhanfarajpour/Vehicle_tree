@@ -15,6 +15,8 @@ from vehicle_tree_app.services.sms.tasks import SendSms
 from vehicle_tree_app.models.users import Users
 from typing import List, Optional
 from django.db.transaction import atomic
+from django.conf import settings
+import redis
 
 
 class UsersRepo(BaseRepo):
@@ -86,7 +88,26 @@ class UsersRepo(BaseRepo):
 
     @atomic
     def change_password(self, data: ChangePasswordSchema):
-       password = make_password(data['password'])
-       user = Users(password=password)
-       user.save()
-       return user
+        password = make_password(data['password'])
+        user = Users(password=password)
+        user.save()
+        return user
+
+    def __init__(self):
+        self.redis_conn = redis.StrictRedis(host=settings.REDIS_HOST,port=settings.REDIS_PORT,db=0)
+
+    @atomic
+    def active_user(self, user_id: int) -> bool:
+        online_users_keys = self.redis_conn.keys('user:*:logged_in')
+        online_users = []
+        for key in online_users_keys:
+            redis_user_id = key.decode().split(':')[1]
+            online_users.append(redis_user_id)
+        if str(user_id) in online_users:
+            return True
+        return False
+
+    def get_online_users(self):
+        online_users_keys = self.redis_conn.keys('user:*:logged_in')
+        online_users = [key.decode().split(':')[1] for key in online_users_keys]
+        return online_users
