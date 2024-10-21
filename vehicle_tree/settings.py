@@ -16,6 +16,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from minio import Minio
+from redis import Redis
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -189,9 +190,8 @@ CELERY_TASK_SERIALIZER = 'json'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_RESULT_SERIALIZER = 'json'
 
-
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
+REDIS_HOST=os.getenv('REDIS_HOST')
+REDIS_PORT=os.getenv('REDIS_PORT')
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',

@@ -20,6 +20,9 @@ import redis
 
 
 class UsersRepo(BaseRepo):
+    @atomic
+    def get_redis_connection(self):
+        return redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
 
     # ORM postgresql
     @atomic
@@ -94,7 +97,7 @@ class UsersRepo(BaseRepo):
         return user
 
     def __init__(self):
-        self.redis_conn = redis.StrictRedis(host=settings.REDIS_HOST,port=settings.REDIS_PORT,db=0)
+        self.redis_conn = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
 
     @atomic
     def active_user(self, user_id: int) -> bool:

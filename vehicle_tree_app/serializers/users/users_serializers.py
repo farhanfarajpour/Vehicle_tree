@@ -1,5 +1,6 @@
 from celery.bin.logtool import errors
 from rest_framework import serializers, status
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from vehicle_tree_app.middleware.response import APIResponse
 from vehicle_tree_app.models.users import Users
@@ -44,6 +45,19 @@ class UserUpdateAndUserListSerializer(serializers.Serializer):
             'max_length': 'message length is larger'
         }
     )
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    refreshToken = serializers.CharField()
+
+    @classmethod
+    def get_tokens(cls, user):
+        access_token = AccessToken.for_user(user)
+        refresh_token = RefreshToken.for_user(user)
+        return {
+            'token': str(access_token),
+            'refreshToken': str(refresh_token),
+        }
 
 
 class UserLoginSerializer(serializers.Serializer):

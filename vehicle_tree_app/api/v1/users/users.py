@@ -10,7 +10,7 @@ from vehicle_tree_app.middleware.validate import validate_serializer
 from vehicle_tree_app.repositories.users_repo import UsersRepo
 from vehicle_tree_app.serializers.users.users_serializers import (
     UserUpdateAndUserListSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
-    UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer
+    UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer, TokenSerializer
 )
 from vehicle_tree_app.permissions.permissions import IsAuthenticated, IsSuperUser
 from vehicle_tree_app.models.users import Users
@@ -30,10 +30,6 @@ import redis
 class BaseView(APIView, AutoSchema):
     user_repo = BaseInjector.get(UsersRepo)
 
-    def get_redis_connection(self):
-       return redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
-
-
 
 class LoginByUsernameView(BaseView, generics.GenericAPIView):
     serializer_class = UserLoginSerializer
@@ -43,15 +39,10 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_user_by_username(request.data['username'], request.data['password'])
         if user:
-            token = AccessToken.for_user(user)
-            refresh_token = RefreshToken.for_user(user)
-            redis_conn = self.get_redis_connection()
+            redis_conn = self.user_repo.get_redis_connection()
             logged_in = redis_conn.get(f"user:{user.id}:logged_in")
             redis_conn.set(f"user:{user.id}:logged_in", '1', ex=3600)
-            out = {
-                'token': str(token),
-                'refreshToken': str(refresh_token),
-            }
+            out = TokenSerializer.get_tokens(user)
             if logged_in and logged_in.decode('utf-8') == '1':
                 return APIResponse(error_code=12, status=status.HTTP_200_OK)
             return APIResponse(data=out)
@@ -78,15 +69,10 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_verify_user_code(request.data['phone_number'], request.data['code'])
         if user:
-            token = AccessToken.for_user(user)
-            refresh_token = RefreshToken.for_user(user)
-            redis_conn = self.get_redis_connection()
+            redis_conn = self.user_repo.get_redis_connection()
             logged_in = redis_conn.get(f"user:{user.id}:logged_in")
             redis_conn.set(f"user:{user.id}:logged_in", '1', ex=3600)
-            out = {
-                'token': str(token),
-                'refreshToken': str(refresh_token),
-            }
+            out =TokenSerializer.get_tokens(user)
             if logged_in and logged_in.decode('utf-8') == '1':
                 return APIResponse(error_code=12, status=status.HTTP_200_OK, data=out)
             return APIResponse(data=out)
@@ -101,13 +87,11 @@ class LogoutView(BaseView, generics.GenericAPIView):
     @handle_exceptions
     def post(self, request):
         refresh_token = request.data.get('refresh_token')
-        if not refresh_token:
-            return APIResponse(error_code=3, status=status.HTTP_400_BAD_REQUEST)
         token = RefreshToken(refresh_token)
         token.blacklist()
-        redis_conn = self.get_redis_connection()
+        redis_conn = self.user_repo.get_redis_connection()
         redis_conn.delete(f"user:{request.user.id}:logged_in")
-        return APIResponse(2001, status=status.HTTP_205_RESET_CONTENT)
+        return APIResponse(success_code=2001, status=status.HTTP_205_RESET_CONTENT)
 
 
 class UserUpdateView(BaseView, generics.GenericAPIView):
@@ -174,7 +158,7 @@ class ListActiveView(BaseView, generics.GenericAPIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        online_user=self.user_repo.get_online_users()
+        online_user = self.user_repo.get_online_users()
         if online_user:
-            return APIResponse({'online_users': online_user},status=status.HTTP_200_OK)
+            return APIResponse({'online_users': online_user}, status=status.HTTP_200_OK)
         return APIResponse(error_code=13, status=status.HTTP_400_BAD_REQUEST)
