@@ -39,9 +39,8 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_user_by_username(request.data['username'], request.data['password'])
         if user:
-            redis_conn = self.user_repo.get_redis_connection()
-            logged_in = redis_conn.get(f"user:{user.id}:logged_in")
-            redis_conn.set(f"user:{user.id}:logged_in", '1', ex=3600)
+            logged_in =self.user_repo.get_redis(user)
+            self.user_repo.set_redis(user_id=int,status=True)
             out = TokenSerializer.get_tokens(user)
             if logged_in and logged_in.decode('utf-8') == '1':
                 return APIResponse(error_code=12, status=status.HTTP_200_OK)
@@ -69,9 +68,8 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_verify_user_code(request.data['phone_number'], request.data['code'])
         if user:
-            redis_conn = self.user_repo.get_redis_connection()
-            logged_in = redis_conn.get(f"user:{user.id}:logged_in")
-            redis_conn.set(f"user:{user.id}:logged_in", '1', ex=3600)
+            logged_in = self.user_repo.get_redis(user)
+            self.user_repo.set_redis(user_id=int, status=True)
             out =TokenSerializer.get_tokens(user)
             if logged_in and logged_in.decode('utf-8') == '1':
                 return APIResponse(error_code=12, status=status.HTTP_200_OK, data=out)

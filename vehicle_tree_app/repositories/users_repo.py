@@ -1,3 +1,4 @@
+import os
 import random
 import string
 from django.contrib.auth.hashers import make_password
@@ -20,14 +21,13 @@ import redis
 
 
 class UsersRepo(BaseRepo):
-    @atomic
-    def get_redis_connection(self):
-        return redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+
 
     # ORM postgresql
     @atomic
     def get_users(self) -> List[Users]:
         return list(Users.objects.all())
+
 
     @atomic
     def login_user_by_phone(self, phone: str) -> Optional[Users]:
@@ -40,12 +40,14 @@ class UsersRepo(BaseRepo):
             return user
         return None
 
+
     @atomic
     def login_verify_user_code(self, phone: str, code: str) -> Optional[Users]:
         user = Users.objects.filter(mobile=phone, code=code).first()
         if user:
             return user
         return None
+
 
     @atomic
     def login_user_by_username(self, username: str, password: str) -> Optional[Users]:
@@ -56,22 +58,22 @@ class UsersRepo(BaseRepo):
                 return user
         return None
 
+
     @atomic
     def get_user_by_id(self, user_id: int) -> Optional[Users]:
         return Users.objects.get(id=user_id)
 
+
     @atomic
     def update_user(self, user_id: int, data: UpdateUserSchema) -> Optional[Users]:
-        # Retrieve the user by ID
         user = self.get_user_by_id(user_id)
         if user:
-            # Update the user's fields with the new data
             for attr, value in data.items():
                 setattr(user, attr, value)
-            # Save the updated user instance
             user.save()
             return user
         return None
+
 
     @atomic
     def delete_user(self, user_id: int) -> bool:
@@ -81,6 +83,7 @@ class UsersRepo(BaseRepo):
             return True
         return False
 
+
     @atomic
     def create_user(self, data: CreateUserSchema):
         username = data['username']
@@ -89,6 +92,7 @@ class UsersRepo(BaseRepo):
             new_user.save()
             return new_user
 
+
     @atomic
     def change_password(self, data: ChangePasswordSchema):
         password = make_password(data['password'])
@@ -96,12 +100,23 @@ class UsersRepo(BaseRepo):
         user.save()
         return user
 
-    def __init__(self):
-        self.redis_conn = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+
+    @atomic
+    def get_redis(self, user):
+        if not user is None:
+            return self.redis.get(f"user:{user.id}:logged_in")
+        return False
+
+    @atomic
+    def set_redis(self, user_id: int, status: bool):
+        if status:
+            self.redis.set(f"user:{user_id}:logged_in", '1')
+            self.redis.expire(f"user:{user_id}:logged_in", 3600)
+        self.redis.delete(f"user:{user_id}:logged_in")
 
     @atomic
     def active_user(self, user_id: int) -> bool:
-        online_users_keys = self.redis_conn.keys('user:*:logged_in')
+        online_users_keys = self.redis.get('user:*:logged_in')
         online_users = []
         for key in online_users_keys:
             redis_user_id = key.decode().split(':')[1]
@@ -110,7 +125,8 @@ class UsersRepo(BaseRepo):
             return True
         return False
 
+
     def get_online_users(self):
-        online_users_keys = self.redis_conn.keys('user:*:logged_in')
+        online_users_keys = self.redis.get('user:*:logged_in')
         online_users = [key.decode().split(':')[1] for key in online_users_keys]
         return online_users
