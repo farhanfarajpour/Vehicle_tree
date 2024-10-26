@@ -87,8 +87,6 @@ class LogoutView(BaseView, generics.GenericAPIView):
         refresh_token = request.data.get('refresh_token')
         token = RefreshToken(refresh_token)
         token.blacklist()
-        redis_conn = self.user_repo.get_redis_connection()
-        redis_conn.delete(f"user:{request.user.id}:logged_in")
         return APIResponse(success_code=2001, status=status.HTTP_205_RESET_CONTENT)
 
 
@@ -156,7 +154,7 @@ class ListActiveView(BaseView, generics.GenericAPIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        online_user = self.user_repo.get_online_users()
+        online_user = self.user_repo.redis_get_online_users()
         if online_user:
             return APIResponse({'online_users': online_user}, status=status.HTTP_200_OK)
         return APIResponse(error_code=13, status=status.HTTP_400_BAD_REQUEST)

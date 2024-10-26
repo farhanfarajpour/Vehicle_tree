@@ -103,19 +103,18 @@ class UsersRepo(BaseRepo):
 
     @atomic
     def get_redis(self, user):
-        if not user is None:
+        if user:
             return self.redis.get(f"user:{user.id}:logged_in")
         return False
 
     @atomic
     def set_redis(self, user_id: int, status: bool):
         if status:
-            self.redis.set(f"user:{user_id}:logged_in", '1')
-            self.redis.expire(f"user:{user_id}:logged_in", 3600)
+            self.redis.set(f"user:{user_id}:logged_in", '1',3600)
         self.redis.delete(f"user:{user_id}:logged_in")
 
     @atomic
-    def active_user(self, user_id: int) -> bool:
+    def redis_active_users(self, user_id: int) -> bool:
         online_users_keys = self.redis.get('user:*:logged_in')
         online_users = []
         for key in online_users_keys:
@@ -126,7 +125,7 @@ class UsersRepo(BaseRepo):
         return False
 
 
-    def get_online_users(self):
+    def redis_get_online_users(self):
         online_users_keys = self.redis.get('user:*:logged_in')
         online_users = [key.decode().split(':')[1] for key in online_users_keys]
         return online_users
