@@ -13,9 +13,9 @@ class RedisService:
         """Add members to a set."""
         return self.redis.sadd(name, *values)
 
-    def set(self, name: str, value: str, time: int):
+    def set(self, name: str, value: str):
         """Set the value of a key."""
-        return self.redis.set(name, value, time)
+        return self.redis.set(name, value)
 
     def get(self, name: str):
         """Get the value of a key."""

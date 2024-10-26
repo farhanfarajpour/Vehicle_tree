@@ -110,7 +110,7 @@ class UsersRepo(BaseRepo):
     @atomic
     def set_redis(self, user_id: int, status: bool):
         if status:
-            self.redis.set(f"user:{user_id}:logged_in", '1',3600)
+            self.redis.set(f"user:{user_id}:logged_in", '1')
         self.redis.delete(f"user:{user_id}:logged_in")
 
     @atomic
