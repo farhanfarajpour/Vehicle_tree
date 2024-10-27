@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
 
+
 ]
 
 MIDDLEWARE = [
@@ -181,11 +182,21 @@ MINIO_SECURE = os.getenv('MINIO_SECURE')
 
 client = Minio(MINIO_ENDPOINT, access_key=MINIO_ACCESS_KEY, secret_key=MINIO_SECRET_KEY, secure=False)
 
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
 CORS_ALLOW_ALL_ORIGINS = True
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_RESULT_SERIALIZER = 'json'
+
+REDIS_HOST=os.getenv('REDIS_HOST')
+REDIS_PORT=os.getenv('REDIS_PORT')
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}

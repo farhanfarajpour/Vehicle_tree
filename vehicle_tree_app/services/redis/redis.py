@@ -2,6 +2,7 @@ from redis import Redis
 from injector import inject, singleton
 import time
 
+
 @singleton
 class RedisService:
     @inject
@@ -28,6 +29,11 @@ class RedisService:
         """Check if a value is a member of a set."""
         return self.redis.sismember(name, value)
 
+    def delete(self, name: str):
+        return self.redis.delete(name)
+
+    def keys(self, names: str):
+        return self.redis.keys(names)
     '''
         Usage : 
         user_id = 'user_123'
@@ -36,6 +42,7 @@ class RedisService:
         rate_limiter_service.is_rate_limited(user_id, rate_limit, time_period)
 
     '''
+
     def is_rate_limited(self, key: str, limit: int, period: int) -> bool:
         """
         Check if the rate limit has been exceeded.

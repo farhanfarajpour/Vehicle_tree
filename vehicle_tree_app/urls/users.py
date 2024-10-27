@@ -1,13 +1,12 @@
 from django.urls import path
-
+from rest_framework_simplejwt.views import TokenRefreshView
 from vehicle_tree_app.api.v1.users.users import (LoginByNumberForGetCodeView, LoginByUsernameView, LogoutView,
                                                  LoginByNumber, UserUpdateView,
                                                  UserDeleteView,
                                                  UserListView,
+ListActiveView,
 ChangePasswordView,
-
-CreateUserView
-                                                 )
+CreateUserView)
 
 user_url = [
 
@@ -20,4 +19,6 @@ user_url = [
     path('users/list', UserListView.as_view(), name='List'),
     path('users/createuser', CreateUserView.as_view(), name='CreateUser'),
     path('users/changepassword', ChangePasswordView.as_view(), name='ChangePassword'),
+    path('users/list/active', ListActiveView.as_view(), name='ListActive'),
+    path('users/refresh',TokenRefreshView.as_view(), name='RefreshToken'),
 ]

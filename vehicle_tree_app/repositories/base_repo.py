@@ -7,8 +7,7 @@ from vehicle_tree_app.services.sms.tasks import KavenegarAPI
 class BaseRepo:
 
     @inject
-    def __init__(self, minio_sdk: MinIOSDK, redis: RedisService,KavenegarAPI:KavenegarAPI):
+    def __init__(self, minio_sdk: MinIOSDK, redis: RedisService, KavenegarAPI: KavenegarAPI):
         self.service_minio = minio_sdk
-        self.Redis = redis
+        self.redis = redis
         self.KavenegarAPI = KavenegarAPI
-

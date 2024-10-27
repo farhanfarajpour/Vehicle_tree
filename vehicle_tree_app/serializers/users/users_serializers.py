@@ -1,5 +1,6 @@
 from celery.bin.logtool import errors
 from rest_framework import serializers, status
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from vehicle_tree_app.middleware.response import APIResponse
 from vehicle_tree_app.models.users import Users
@@ -44,6 +45,19 @@ class UserUpdateAndUserListSerializer(serializers.Serializer):
             'max_length': 'message length is larger'
         }
     )
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    refreshToken = serializers.CharField()
+
+    @classmethod
+    def get_tokens(cls, user):
+        access_token = AccessToken.for_user(user)
+        refresh_token = RefreshToken.for_user(user)
+        return {
+            'token': str(access_token),
+            'refreshToken': str(refresh_token),
+        }
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -171,3 +185,17 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
+class RefreshTokenSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Refresh token cannot be null.',
+            'invalid': 'Invalid refresh token.',
+        }
+    )
+    def validate(self, data):
+        refresh_token = data.get('refresh_token')
+        if refresh_token is None:
+            raise serializers.ValidationError(detail="refresh_token_null", code="refresh_token_null")
+        return refresh_token
