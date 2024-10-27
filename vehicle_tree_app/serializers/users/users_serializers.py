@@ -185,3 +185,17 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
+class RefreshTokenSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField(
+        allow_null=False,
+        required=True,
+        error_messages={
+            'null': 'Refresh token cannot be null.',
+            'invalid': 'Invalid refresh token.',
+        }
+    )
+    def validate(self, data):
+        refresh_token = data.get('refresh_token')
+        if refresh_token is None:
+            raise serializers.ValidationError(detail="refresh_token_null", code="refresh_token_null")
+        return refresh_token

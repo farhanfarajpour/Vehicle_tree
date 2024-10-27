@@ -32,6 +32,8 @@ class RedisService:
     def delete(self, name: str):
         return self.redis.delete(name)
 
+    def keys(self, names: str):
+        return self.redis.keys(names)
     '''
         Usage : 
         user_id = 'user_123'

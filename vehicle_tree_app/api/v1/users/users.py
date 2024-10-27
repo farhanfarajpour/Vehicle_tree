@@ -1,3 +1,5 @@
+import os
+
 from rest_framework import generics
 from rest_framework.schemas import AutoSchema
 
@@ -10,7 +12,8 @@ from vehicle_tree_app.middleware.validate import validate_serializer
 from vehicle_tree_app.repositories.users_repo import UsersRepo
 from vehicle_tree_app.serializers.users.users_serializers import (
     UserUpdateAndUserListSerializer, UserLoginSerializer, UserNumberLoginSerializer, UserNumberCodeSerializer,
-    UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer, TokenSerializer
+    UserDeleteSerializer, CreateUserSerializer, ChangePasswordSerializer, UserLogoutSerializer, TokenSerializer,
+    RefreshTokenSerializer
 )
 from vehicle_tree_app.permissions.permissions import IsAuthenticated, IsSuperUser
 from vehicle_tree_app.models.users import Users
@@ -25,6 +28,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 import redis
+from django.contrib.auth import get_user_model
 
 
 class BaseView(APIView, AutoSchema):
@@ -39,11 +43,11 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_user_by_username(request.data['username'], request.data['password'])
         if user:
-            logged_in =self.user_repo.get_redis(user)
-            self.user_repo.set_redis(user_id=int,status=True)
+            logged_in = self.user_repo.get_redis(user.id)
+            self.user_repo.set_redis(user_id=user.id, status=True)
             out = TokenSerializer.get_tokens(user)
-            if logged_in and logged_in.decode('utf-8') == '1':
-                return APIResponse(error_code=12, status=status.HTTP_200_OK)
+            # if logged_in and logged_in.decode('utf-8') == os.getenv('ONE'):
+            #     return APIResponse(error_code=12, status=status.HTTP_200_OK)
             return APIResponse(data=out)
         return APIResponse(error_code=2, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,9 +73,9 @@ class LoginByNumber(BaseView, generics.GenericAPIView):
         user = self.user_repo.login_verify_user_code(request.data['phone_number'], request.data['code'])
         if user:
             logged_in = self.user_repo.get_redis(user)
-            self.user_repo.set_redis(user_id=int, status=True)
-            out =TokenSerializer.get_tokens(user)
-            if logged_in and logged_in.decode('utf-8') == '1':
+            self.user_repo.set_redis(user_id=user.id, status=True)
+            out = TokenSerializer.get_tokens(user)
+            if logged_in and logged_in.decode('utf-8') == os.getenv('ONE'):
                 return APIResponse(error_code=12, status=status.HTTP_200_OK, data=out)
             return APIResponse(data=out)
         return APIResponse(error_code=2, status=status.HTTP_400_BAD_REQUEST)
@@ -87,6 +91,8 @@ class LogoutView(BaseView, generics.GenericAPIView):
         refresh_token = request.data.get('refresh_token')
         token = RefreshToken(refresh_token)
         token.blacklist()
+        user_id = request.user.id
+        self.user_repo.set_redis(user_id=user_id, status=False)
         return APIResponse(success_code=2001, status=status.HTTP_205_RESET_CONTENT)
 
 
@@ -135,8 +141,8 @@ class CreateUserView(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.create_user(data=request.data)
         if user:
-            return APIResponse(error_code=9, status=status.HTTP_400_BAD_REQUEST)
-        return APIResponse(success_code=2008, status=status.HTTP_201_CREATED)
+            return APIResponse(success_code=2008, status=status.HTTP_201_CREATED)
+        return APIResponse(error_code=9, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(BaseView, generics.GenericAPIView):

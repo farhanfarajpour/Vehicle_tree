@@ -22,12 +22,10 @@ import redis
 
 class UsersRepo(BaseRepo):
 
-
     # ORM postgresql
     @atomic
     def get_users(self) -> List[Users]:
         return list(Users.objects.all())
-
 
     @atomic
     def login_user_by_phone(self, phone: str) -> Optional[Users]:
@@ -40,14 +38,12 @@ class UsersRepo(BaseRepo):
             return user
         return None
 
-
     @atomic
     def login_verify_user_code(self, phone: str, code: str) -> Optional[Users]:
         user = Users.objects.filter(mobile=phone, code=code).first()
         if user:
             return user
         return None
-
 
     @atomic
     def login_user_by_username(self, username: str, password: str) -> Optional[Users]:
@@ -58,11 +54,9 @@ class UsersRepo(BaseRepo):
                 return user
         return None
 
-
     @atomic
     def get_user_by_id(self, user_id: int) -> Optional[Users]:
         return Users.objects.get(id=user_id)
-
 
     @atomic
     def update_user(self, user_id: int, data: UpdateUserSchema) -> Optional[Users]:
@@ -74,7 +68,6 @@ class UsersRepo(BaseRepo):
             return user
         return None
 
-
     @atomic
     def delete_user(self, user_id: int) -> bool:
         user = self.get_user_by_id(user_id)
@@ -83,15 +76,14 @@ class UsersRepo(BaseRepo):
             return True
         return False
 
-
     @atomic
     def create_user(self, data: CreateUserSchema):
         username = data['username']
         if not Users.objects.filter(username=username).exists():
-            new_user = Users(username=data["username"], password=data["password"])
+            new_user = Users(username=data["username"], password=make_password(data["password"]))
             new_user.save()
             return new_user
-
+        return None
 
     @atomic
     def change_password(self, data: ChangePasswordSchema):
@@ -100,32 +92,35 @@ class UsersRepo(BaseRepo):
         user.save()
         return user
 
-
     @atomic
-    def get_redis(self, user):
-        if user:
-            return self.redis.get(f"user:{user.id}:logged_in")
-        return False
+    def get_redis(self, user_id):
+        return self.redis.get(f"user:{user_id}:logged_in")
 
     @atomic
     def set_redis(self, user_id: int, status: bool):
-        if status:
-            self.redis.set(f"user:{user_id}:logged_in", '1')
-        self.redis.delete(f"user:{user_id}:logged_in")
+        # access_token_lifetime = int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
+        if status is True:
+            self.redis.set(f"user:{user_id}:logged_in", os.getenv('ONE'))
+        elif status is False:
+            self.redis.delete(f"user:{user_id}:logged_in")
 
     @atomic
     def redis_active_users(self, user_id: int) -> bool:
-        online_users_keys = self.redis.get('user:*:logged_in')
+        online_users_keys = self.redis.keys('user:*:logged_in')
+        if online_users_keys is None:
+            online_users_keys = []
         online_users = []
         for key in online_users_keys:
-            redis_user_id = key.decode().split(':')[1]
+            redis_user_id = key.decode().split(':')[os.getenv('ONE')]
             online_users.append(redis_user_id)
         if str(user_id) in online_users:
             return True
         return False
 
-
+    @atomic
     def redis_get_online_users(self):
-        online_users_keys = self.redis.get('user:*:logged_in')
+        online_users_keys = self.redis.keys('user:*:logged_in')
+        if online_users_keys is None:
+            online_users_keys = []
         online_users = [key.decode().split(':')[1] for key in online_users_keys]
         return online_users
