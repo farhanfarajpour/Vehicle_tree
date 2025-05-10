@@ -43,11 +43,9 @@ class LoginByUsernameView(BaseView, generics.GenericAPIView):
     def post(self, request):
         user = self.user_repo.login_user_by_username(request.data['username'], request.data['password'])
         if user:
-            logged_in = self.user_repo.get_redis(user.id)
+            self.user_repo.get_redis(user.id)
             self.user_repo.set_redis(user_id=user.id, status=True)
             out = TokenSerializer.get_tokens(user)
-            # if logged_in and logged_in.decode('utf-8') == os.getenv('ONE'):
-            #     return APIResponse(error_code=12, status=status.HTTP_200_OK)
             return APIResponse(data=out)
         return APIResponse(error_code=2, status=status.HTTP_400_BAD_REQUEST)
 

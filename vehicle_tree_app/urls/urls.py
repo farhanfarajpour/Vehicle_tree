@@ -1,6 +1,7 @@
 from django.urls import path, include
 from vehicle_tree_app.urls.admin.admin import admin_url
 from vehicle_tree_app.urls.users import user_url
+from vehicle_tree_app.urls.elastic_search import elastic_url
 
 urlpatterns = [
 
@@ -9,4 +10,7 @@ urlpatterns = [
 
     # User
     path('', include(user_url)),
+
+    # Elastic
+    path('', include(elastic_url)),
 ]

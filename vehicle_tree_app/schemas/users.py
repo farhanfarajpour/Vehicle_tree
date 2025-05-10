@@ -30,11 +30,9 @@ class ChangePasswordSchema(BaseModel):
     password: str
     confirm_password: str
 
-class LogIndexModel(BaseModel):
-    user: UserModel
-    node_id: int
-    operation_time: str
-    operation_time_date: datetime
-    node_route: str
-    events_list: List[EventModel]
-    created_at: datetime
+class ElasticSaveSchema(BaseModel):
+    id: int
+    username: int
+    first_name: str
+    last_name: str
+    # city: str

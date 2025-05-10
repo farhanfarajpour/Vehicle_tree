@@ -1,26 +1,41 @@
 import os
 import random
 import string
+from http.client import responses
+from operator import index
+
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
 from dns.tsig import validate
+from elastic_transport import ObjectApiResponse
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+from injector import inject
 from prompt_toolkit.shortcuts import confirm
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, Token
 from vehicle_tree_app.serializers.users.users_serializers import ChangePasswordSerializer
 from vehicle_tree_app.repositories.base_repo import BaseRepo
-from vehicle_tree_app.schemas.users import UpdateUserSchema, CreateUserSchema, ChangePasswordSchema
+from vehicle_tree_app.schemas.users import UpdateUserSchema, CreateUserSchema, ElasticSaveSchema, ChangePasswordSchema
+from vehicle_tree_app.services.elastic_search import elastic_search
+from vehicle_tree_app.services.redis.redis import RedisService
 from vehicle_tree_app.services.sms.tasks import SendSms
 from vehicle_tree_app.models.users import Users
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from django.db.transaction import atomic
+from vehicle_tree_app.services.elastic_search.elastic_search import SearchELK
 from django.conf import settings
 import redis
+from datetime import datetime
 
 
 class UsersRepo(BaseRepo):
+    @inject
+    def __init__(self, elk: SearchELK, redis: RedisService):
+        self.redis = redis
+        self.elk = elk
 
     # ORM postgresql
     @atomic
@@ -92,13 +107,13 @@ class UsersRepo(BaseRepo):
         user.save()
         return user
 
+    # REDIS
     @atomic
     def get_redis(self, user_id):
         return self.redis.get(f"user:{user_id}:logged_in")
 
     @atomic
     def set_redis(self, user_id: int, status: bool):
-        # access_token_lifetime = int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
         if status is True:
             self.redis.set(f"user:{user_id}:logged_in", os.getenv('ONE'))
         elif status is False:
@@ -124,3 +139,81 @@ class UsersRepo(BaseRepo):
             online_users_keys = []
         online_users = [key.decode().split(':')[1] for key in online_users_keys]
         return online_users
+
+    # ELASTIC_SEARCH
+    @atomic
+    def save_elasticsearch(self, data: ElasticSaveSchema) -> Optional[Users]:
+        login_data = {
+            'id': data.get('id'),
+            'username': data.get('username'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+        }
+        if not self.elk.check_index_exists():
+            self.elk.create_index()
+        self.elk.create_doc(login_data)
+        user_id = data.get('id')
+        user, created = Users.objects.get_or_create(
+            id=user_id,
+            defaults={
+                'username': data.get('username'),
+                'first_name': data.get('first_name'),
+                'last_name': data.get('last_name'),
+            }
+        )
+        if not created:
+            user.username = data.get('username')
+            user.first_name = data.get('first_name')
+            user.last_name = data.get('last_name')
+            user.save()
+        return user
+    @atomic
+    def get_docs(self, index_name: str, query: dict = None):
+        if query is None:
+            query = {
+                "query": {
+                    "match_all": {}
+                }
+            }
+        response = self.elk.get_doc(index_name=index_name, query=query)
+        hits = response.get('hits', {}).get('hits', [])
+        if hits:
+            return response
+        return {"error": "No documents found"}
+
+    @atomic
+    def search_docs(self, query: Dict[str, Any]):
+        return self.elk.search(query=query)
+
+
+    @atomic
+    def save_elasticsearch_elk(self, data: ElasticSaveSchema) -> Optional[Users]:
+        login_data = {
+            'id': data.get('id'),
+            'username': data.get('username'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+        }
+
+        # Assuming `elk` is an instance of an Elasticsearch client
+        if not self.elk.check_index_exists():
+            self.elk.create_index()
+        self.elk.create_doc(login_data)
+
+        user_id = data.get('id')
+        user, created = Users.objects.get_or_create(
+            id=user_id,
+            defaults={
+                'username': data.get('username'),
+                'first_name': data.get('first_name'),
+                'last_name': data.get('last_name'),
+            }
+        )
+
+        if not created:
+            user.username = data.get('username')
+            user.first_name = data.get('first_name')
+            user.last_name = data.get('last_name')
+            user.save()
+
+        return user

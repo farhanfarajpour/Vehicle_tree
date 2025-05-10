@@ -11,11 +11,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from datetime import timedelta
-
 from pathlib import Path
 
 from dotenv import load_dotenv
 from minio import Minio
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -191,6 +192,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 REDIS_HOST=os.getenv('REDIS_HOST')
 REDIS_PORT=os.getenv('REDIS_PORT')
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -198,5 +200,13 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
+    }
+}
+ELASTIC_HOST = os.getenv('ELASTIC_HOST')
+ELASTIC_PORT = os.getenv('ELASTIC_PORT')
+ELASTICSEARCH_HOST={
+    'default': {
+        'hosts': f'{ELASTIC_HOST}:{ELASTIC_PORT}',
+        # 'http_auth': ('elastic', 'DPVf8Bb7Kx92olSLfPQ+')
     }
 }
